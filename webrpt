@@ -1,0 +1,13 @@
+#!/bin/sh
+# Glen Wiley <glen.wiley@gmail.com>
+#
+# generate a web report that captures the results of the checks
+
+currdata=checks.out
+histdata=checks.hist
+
+htmlout=/usr/local/www/apache24/data/checks.html
+
+[ ! -f $currdata ] && exit 0
+
+sort -k 2,3 $currdata | awk -f ./webrpt.awk > $htmlout

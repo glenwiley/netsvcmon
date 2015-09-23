@@ -1,0 +1,113 @@
+#!/usr/local/bin/bash
+# run checks and write webpage to show status
+# output is linear to be more consumable by scripts
+#
+# relies on the following tools in the path
+#   dig
+#   nc
+#   ping
+
+# DNS checks
+hosts_signed="gwiley.com arbeiter.gwiley.com www.gwiley.com"
+hosts_unsigned="kk4sfv.com"
+
+# web checks
+hosts_web="gwiley.com www.gwiley.com evergreenpowhatan.com kk4sfv.com"
+
+# mail checks
+hosts_mail="mail.gwiley.com"
+
+# set to "@nameserver" e.g. "@8.8.8.8"
+# if this is empty then no specific name server will be used
+recns="@8.8.8.8"
+
+fntmp=/tmp/check.$$
+set EXIT 'rm -f $fntmp'
+
+echo "" > $fntmp
+
+PATH=$PATH:/usr/local/bin
+
+#-------------------- signed zones
+
+for h in $hosts_signed
+do
+   dt=$(date "+%Y%m%d%H%M.%S")
+	echo -n "$dt $h DNS_signed "
+	dig +dnssec $recns $h > $fntmp
+	status=$(grep "^;;.*status:" $fntmp | sed 's/^.*status: //' | sed 's/,.*//')
+	echo -n "status:"
+	if [ -z "$status" ]
+	then
+		echo -n "FAIL"
+	else
+		echo -n "PASS"
+	fi
+
+	grep ";; flags" $fntmp | grep " ad" >/dev/null
+	echo -n " adbit:"
+	if [ $? == 0 ]
+	then
+		echo -n "PASS"
+	else
+		echo -n "FAIL"
+	fi
+	echo ""
+done
+
+#-------------------- PING
+
+for h in $hosts_signed $hosts_unsigned
+do
+   dt=$(date "+%Y%m%d%H%M.%S")
+	echo -n "$dt $h ping "
+	ping -c 3 -q $h >/dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "PASS"
+	else
+		echo "FAIL"
+	fi
+done
+
+#-------------------- WEB
+
+for h in $hosts_web
+do
+   dt=$(date "+%Y%m%d%H%M.%S")
+	echo -n "$dt $h web80 "
+	nc -z $h 80 >/dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "PASS"
+	else
+		echo "FAIL"
+	fi
+
+	echo -n "$dt $h web443 "
+	nc -z $h 443 >/dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "PASS"
+	else
+		echo "FAIL"
+	fi
+
+done
+
+#-------------------- MAIL
+
+for h in $hosts_mail
+do
+   dt=$(date "+%Y%m%d%H%M.%S")
+	echo -n "$dt $h smtp "
+	nc -z $h 25 >/dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "PASS"
+	else
+		echo "FAIL"
+	fi
+
+done
+
