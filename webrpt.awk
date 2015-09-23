@@ -10,7 +10,7 @@ BEGIN {
 	print "<head>Services Monitoring Report: gwiley.com</head>";
 	print "<body>";
 	print "<table border=1>";
-	print "<tr><th>Host</th><th>Service</th><th>Test 1</th><th>Test 2</th><th>Time</th></tr>";
+	print "<tr><th>Host</th><th>Service</th><th>Test 1</th><th>Test 2</th><th>Time (UTC)</th></tr>";
 }
 
 {

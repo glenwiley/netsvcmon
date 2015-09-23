@@ -1,20 +1,24 @@
 #!/usr/local/bin/bash
+# Glen Wiley <glen.wiley@gmail.com>
+#
 # run checks and write webpage to show status
-# output is linear to be more consumable by scripts
+# output is linear to be consumable by scripts
+# written for FreeBSD 10.x
 #
 # relies on the following tools in the path
 #   dig
 #   nc
 #   ping
+#
 
-# DNS checks
+# hosts to be included in DNS checks
 hosts_signed="gwiley.com arbeiter.gwiley.com www.gwiley.com"
 hosts_unsigned="kk4sfv.com"
 
-# web checks
+# hosts to be included in web checks
 hosts_web="gwiley.com www.gwiley.com evergreenpowhatan.com kk4sfv.com"
 
-# mail checks
+# hosts to be included in mail checks
 hosts_mail="mail.gwiley.com"
 
 # set to "@nameserver" e.g. "@8.8.8.8"
@@ -23,15 +27,16 @@ recns="@8.8.8.8"
 
 fntmp=/tmp/check.$$
 set EXIT 'rm -f $fntmp'
-
 echo "" > $fntmp
 
 PATH=$PATH:/usr/local/bin
+TZ=UTC
 
 #-------------------- signed zones
 
 for h in $hosts_signed
 do
+
    dt=$(date "+%Y%m%d%H%M.%S")
 	echo -n "$dt $h DNS_signed "
 	dig +dnssec $recns $h > $fntmp
